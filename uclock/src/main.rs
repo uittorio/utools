@@ -3,23 +3,26 @@ mod desktop_message_receiver;
 mod desktop_message_transport;
 mod message;
 
-use std::time::Duration;
-
 use chrono::Local;
 use cosmic::{
     app::{self, Settings},
     cctk::sctk::shell::wlr_layer::{Anchor, Layer},
     executor,
     iced::{
+        core::text::Alignment,
         runtime::platform_specific::wayland::{
             layer_surface::{IcedMargin, SctkLayerSurfaceSettings},
             CornerRadius,
         },
-        time, window, Subscription,
+        time, window, Length, Padding, Subscription,
     },
-    surface, Core, Element,
+    surface,
+    widget::text,
+    Core, Element,
 };
 use futures::stream::StreamExt;
+use iana_time_zone::get_timezone;
+use std::time::Duration;
 use tokio_stream::wrappers::BroadcastStream;
 
 use crate::{desktop_bus::init_dbus, desktop_message_transport::DBUS_TX, message::Message};
@@ -84,13 +87,19 @@ impl app::Application for Clock {
                                 bottom_right: 0,
                                 bottom_left: 0,
                             }),
+                            padding: Some(IcedMargin {
+                                top: 0,
+                                right: 0,
+                                bottom: 0,
+                                left: 0,
+                            }),
                             ..Default::default()
                         },
                         move || SctkLayerSurfaceSettings {
                             id,
                             layer: Layer::Overlay,
                             anchor: Anchor::BOTTOM | Anchor::RIGHT,
-                            size: Some((Some(200), Some(80))),
+                            size: Some((Some(200), Some(160))),
                             namespace: "uclock".to_string(),
                             margin: IcedMargin {
                                 top: 0,
@@ -100,8 +109,29 @@ impl app::Application for Clock {
                             ..Default::default()
                         },
                         Some(move || -> Element<'static, cosmic::Action<Message>> {
-                            let time_formatted = Local::now().format("%H:%M:%S").to_string();
-                            cosmic::iced::widget::text(time_formatted).size(48).into()
+                            let time = Local::now();
+                            let time_formatted = time.format("%H:%M:%S").to_string();
+                            let date_formatted = time.format("%B %d").to_string();
+
+                            let timezone = get_timezone().unwrap();
+
+                            let timezone_text = text(timezone);
+                            let date_text = text(date_formatted);
+
+                            cosmic::iced::widget::column([
+                                timezone_text.size(12).align_x(Alignment::Left).into(),
+                                text(time_formatted)
+                                    .size(48)
+                                    .align_x(Alignment::Center)
+                                    .into(),
+                                date_text
+                                    .size(16)
+                                    .align_x(Alignment::Right)
+                                    .width(Length::Fill)
+                                    .into(),
+                            ])
+                            .padding(Padding::new(10.0))
+                            .into()
                         }),
                     );
                     return surface::surface_task(layer_shell);
