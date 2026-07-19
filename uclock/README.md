@@ -4,6 +4,8 @@ time cosmic widget triggered by dbus messages.
 
 This is a tool to visualise the time of the day. The tool is toggable, it can receive a desktop bus message to hide and show.
 
+![uclock](uclock.png)
+
 These are the technologies used relevant to understand how the project runs
 
 | Tech | What it does | Why |
