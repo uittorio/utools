@@ -1,6 +1,6 @@
 # Uclock
 
-Uclock cosmic widget triggered by dbus messages.
+time cosmic widget triggered by dbus messages.
 
 This is a tool to visualise the time of the day. The tool is toggable, it can receive a desktop bus message to hide and show.
 
