@@ -5,7 +5,7 @@ mod message;
 
 use std::time::Duration;
 
-use chrono::{DateTime, Local};
+use chrono::Local;
 use cosmic::{
     app::{self, Settings},
     cctk::sctk::shell::wlr_layer::{Anchor, Layer},
@@ -27,7 +27,6 @@ use crate::{desktop_bus::init_dbus, desktop_message_transport::DBUS_TX, message:
 pub struct Clock {
     core: Core,
     is_visible: bool,
-    current_time: DateTime<Local>,
     layer_shell_id: window::Id,
 }
 
@@ -46,7 +45,6 @@ impl app::Application for Clock {
         let app = Clock {
             core,
             is_visible: false,
-            current_time: Local::now(),
             layer_shell_id,
         };
 
@@ -76,7 +74,6 @@ impl app::Application for Clock {
             Message::Toggle => {
                 self.is_visible = !self.is_visible;
                 if self.is_visible {
-                    let time = self.current_time;
                     let id = self.layer_shell_id;
                     let layer_shell = surface::action::simple_layer_shell(
                         || surface::action::LiveSettings {
@@ -103,7 +100,7 @@ impl app::Application for Clock {
                             ..Default::default()
                         },
                         Some(move || -> Element<'static, cosmic::Action<Message>> {
-                            let time_formatted = time.format("%H:%M:%S").to_string();
+                            let time_formatted = Local::now().format("%H:%M:%S").to_string();
                             cosmic::iced::widget::text(time_formatted).size(48).into()
                         }),
                     );
@@ -113,7 +110,7 @@ impl app::Application for Clock {
                     return surface::surface_task(destroy);
                 }
             }
-            Message::Tick => self.current_time = Local::now(),
+            Message::Tick => (),
         }
         cosmic::Task::none()
     }
