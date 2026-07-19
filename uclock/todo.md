@@ -1,0 +1,3 @@
+- better background (design)
+- display date and time (design) + position
+- add test to make sure the app id is the same.
