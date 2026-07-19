@@ -89,7 +89,7 @@ impl app::Application for Clock {
                         move || SctkLayerSurfaceSettings {
                             id,
                             layer: Layer::Overlay,
-                            anchor: Anchor::TOP | Anchor::LEFT,
+                            anchor: Anchor::BOTTOM | Anchor::RIGHT,
                             size: Some((Some(200), Some(80))),
                             namespace: "uclock".to_string(),
                             margin: IcedMargin {
