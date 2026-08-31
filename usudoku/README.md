@@ -2,9 +2,7 @@
 
 Just having fun implementing sudoku
 
-This project is to learn the maths around sudoku, especially learning algorithms to
-- generating a valid sudoku board with one solution
-- fill the sudoku board with efficient algoroithm
+This project is to learn the maths around sudoku, especially learning algorithms to generate a valid sudoku board with one solution
 
 
 Phase 1 (current)
@@ -14,7 +12,7 @@ Implement a ~playbable sudoku
 - Show error
 
 Phase 2
-Ensure the sudoku has one solution by improving how the clues are generated
+Ensure the sudoku has one solution by improving how the clues are generated. In Phase 1 is just percentage based. (remove 20% of the cells)
 
 Phase 3
 Learn and use the dancing algorithm to prefill the sudoku
