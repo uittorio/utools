@@ -8,8 +8,8 @@ This project is to learn the maths around sudoku, especially learning algorithms
 Phase 1 (current)
 Implement a ~playbable sudoku
 
-- Do not let changing existing pre filled cells
-- Show error
+V Do not let changing existing pre filled cells
+V Show error
 
 Phase 2
 Ensure the sudoku has one solution by improving how the clues are generated. In Phase 1 is just percentage based. (remove 20% of the cells)

@@ -1,8 +1,12 @@
-mod sudoku_backtracking_generator;
 mod sudoku_board;
-mod sudoku_generator;
+mod sudoku_clues;
+mod sudoku_game;
 mod sudoku_navigator;
+mod sudoku_solution;
+mod sudoku_solution_generator;
 mod sudoku_value;
+
+use std::collections::HashSet;
 
 use iced::{
     Border, Color,
@@ -11,7 +15,8 @@ use iced::{
 };
 
 use crate::{
-    sudoku_board::{CellPosition, SudokuBlock, SudokuBoard, SudokuCell},
+    sudoku_board::{CellPosition, SudokuBlock, SudokuCell},
+    sudoku_game::SudokuGame,
     sudoku_value::SudokuValue,
 };
 
@@ -33,8 +38,9 @@ pub enum Direction {
 }
 
 struct Game {
-    sudoku: SudokuBoard,
+    sudoku: SudokuGame,
     selected_cell: Option<CellPosition>,
+    errors: HashSet<CellPosition>,
 }
 
 fn main() -> iced::Result {
@@ -45,20 +51,24 @@ fn main() -> iced::Result {
 
 impl Game {
     pub fn new() -> Game {
+        let game = SudokuGame::new();
+        let errors = HashSet::new();
+
         Game {
-            sudoku: sudoku_generator::sudoku_generator(),
+            sudoku: game,
             selected_cell: None,
+            errors,
         }
     }
 
     pub fn reset(&mut self) {
-        self.sudoku = sudoku_generator::sudoku_generator();
+        self.sudoku = SudokuGame::new();
     }
 
     pub fn view(&self) -> Column<'_, Message> {
         let grid = self
             .sudoku
-            .blocks
+            .blocks()
             .chunks_exact(3)
             .map(|blocks| {
                 row![
@@ -113,14 +123,28 @@ impl Game {
             }
             Message::Clear => match self.selected_cell {
                 Some(selected) => {
-                    self.sudoku.empty(selected);
+                    if self.sudoku.is_clue(selected) == false {
+                        match self.sudoku.empty(selected) {
+                            Ok(_) => {}
+                            Err(_) => {
+                                self.errors.insert(selected);
+                            }
+                        }
+                    };
                 }
                 None => {}
             },
             Message::Reset => self.reset(),
             Message::Fill(v) => match self.selected_cell {
                 Some(selected) => {
-                    self.sudoku.set(selected, v);
+                    if self.sudoku.is_clue(selected) == false {
+                        match self.sudoku.set(selected, v) {
+                            Ok(_) => {}
+                            Err(_) => {
+                                self.errors.insert(selected);
+                            }
+                        }
+                    };
                 }
                 None => {}
             },
@@ -187,19 +211,29 @@ impl Game {
             None => false,
         };
 
+        let is_error = match cell.value {
+            Some(v) => self.sudoku.is_correct(cell.position, v) == false,
+            None => false,
+        };
+
         button(text(value).center().size(20))
             .width(50)
             .height(50)
             .on_press(Message::Select(cell.position))
             .style(move |_theme, _status| button::Style {
                 background: None,
-                text_color: Color::WHITE,
+                text_color: if is_error {
+                    Color::from_rgb(1.0, 0.0, 0.0)
+                } else {
+                    Color::from_rgb(1.0, 1.0, 1.0)
+                },
                 snap: true,
                 border: Border {
-                    color: if is_selected {
-                        Color::from_rgb(0.8, 0.8, 0.8)
-                    } else {
-                        Color::from_rgb(0.6, 0.6, 0.6)
+                    color: match (is_error, is_selected) {
+                        (true, true) => Color::from_rgb(0.8, 0.0, 0.0),
+                        (true, false) => Color::from_rgb(0.6, 0.0, 0.0),
+                        (false, true) => Color::from_rgb(0.8, 0.8, 0.8),
+                        (false, false) => Color::from_rgb(0.6, 0.6, 0.6),
                     },
                     width: if is_selected { 4.0 } else { 1.0 },
                     radius: 8.0.into(),

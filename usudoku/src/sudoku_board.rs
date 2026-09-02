@@ -2,7 +2,7 @@ use crate::sudoku_value::{SudokuValue, all_values};
 
 pub type SudokuBlock = Vec<SudokuCell>;
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct CellPosition {
     pub block: usize,
     pub cell: usize,
@@ -27,9 +27,10 @@ impl SudokuCell {
 
 pub struct SudokuBoard {
     pub blocks: Vec<SudokuBlock>,
-    size: SudokuSize,
+    pub size: SudokuSize,
 }
 
+#[derive(Clone, Copy)]
 pub enum SudokuSize {
     NineByNine,
 }
@@ -47,27 +48,34 @@ impl SudokuBoard {
 
         return SudokuBoard { blocks, size };
     }
+
+    pub fn from(board: &SudokuBoard) -> Self {
+        let blocks = board
+            .blocks
+            .iter()
+            .map(|b| {
+                b.iter()
+                    .map(|c| SudokuCell {
+                        position: c.position,
+                        value: c.value,
+                        annotations: c.annotations.clone(),
+                    })
+                    .collect::<Vec<SudokuCell>>()
+            })
+            .collect();
+
+        return SudokuBoard {
+            blocks,
+            size: board.size,
+        };
+    }
 }
 
 impl SudokuBoard {
-    pub fn total_cells(&self) -> usize {
-        match self.size {
-            SudokuSize::NineByNine => 81,
-        }
-    }
-
     pub fn annotate_all(&mut self) {
         for block in self.blocks.iter_mut() {
             for cell in block {
                 cell.annotations = all_values();
-            }
-        }
-    }
-
-    pub fn clear_all_annotations(&mut self) {
-        for block in self.blocks.iter_mut() {
-            for cell in block {
-                cell.annotations = vec![];
             }
         }
     }

@@ -2,26 +2,28 @@ use rand::random_range;
 
 use crate::{
     sudoku_board::{CellPosition, SudokuBoard, SudokuSize},
+    sudoku_solution::{SudokuSolution, SudokuSolutionCell},
     sudoku_value::SudokuValue,
 };
 
-pub struct SudokuBacktrackingGenerator {
+pub struct SudokuSolutionBacktrackingGenerator {
     pub board: SudokuBoard,
 }
 
-impl SudokuBacktrackingGenerator {
-    pub fn new() -> SudokuBoard {
-        let mut generator = SudokuBacktrackingGenerator {
-            board: SudokuBoard::new(SudokuSize::NineByNine),
-        };
+impl SudokuSolutionBacktrackingGenerator {
+    pub fn new(size: SudokuSize) -> SudokuSolution {
+        let board = SudokuBoard::new(size);
 
-        generator.board.annotate_all();
+        let mut generator = SudokuSolutionBacktrackingGenerator { board };
+
         generator.generate();
 
-        generator.board
+        generator.to_solution()
     }
 
     pub fn generate(&mut self) {
+        self.board.annotate_all();
+
         let mut navigator = self.board.navigator();
 
         loop {
@@ -85,6 +87,25 @@ impl SudokuBacktrackingGenerator {
 
                 return Some(value_to_try);
             }
+        }
+    }
+
+    fn to_solution(&mut self) -> SudokuSolution {
+        SudokuSolution {
+            blocks: self
+                .board
+                .blocks
+                .iter()
+                .map(|b| {
+                    b.into_iter()
+                        .map(|c| SudokuSolutionCell {
+                            value: c
+                                .value
+                                .expect("Cannot create a solution with an empty value"),
+                        })
+                        .collect()
+                })
+                .collect(),
         }
     }
 }
