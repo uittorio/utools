@@ -64,6 +64,18 @@ impl SudokuGame {
         }
     }
 
+    pub fn annotate(&mut self, position: CellPosition, value: SudokuValue) {
+        if self.board.has_annotation(position, value) {
+            self.board.remove_annotation(position, value);
+        } else {
+            self.board.add_annotation(position, value);
+        }
+    }
+
+    pub fn remove_annotations(&mut self, position: CellPosition) {
+        self.board.clear_annotations(position);
+    }
+
     pub fn empty(&mut self, position: CellPosition) -> Result<(), SudokuError> {
         if self.is_clue(position) {
             return Err(SudokuError::TryToChangeClue);

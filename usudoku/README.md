@@ -10,13 +10,17 @@ Implement a ~playbable sudoku
 
 V Do not let changing existing pre filled cells
 V Show error
-Annotations
+V Annotations
+Undo/Redo
 Win state 
  - block board
  - show something
 
+
 Phase 2
 Ensure the sudoku has one solution by improving how the clues are generated;
+Add also difficulty selection
+
 
 Phase 3
 Learn and use the dancing algorithm to prefill the sudoku

@@ -1,4 +1,6 @@
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+use std::collections::HashSet;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum SudokuValue {
     One,
     Two,
@@ -27,8 +29,8 @@ impl SudokuValue {
     }
 }
 
-pub fn all_values() -> Vec<SudokuValue> {
-    vec![
+pub fn all_values() -> HashSet<SudokuValue> {
+    HashSet::from([
         SudokuValue::One,
         SudokuValue::Two,
         SudokuValue::Three,
@@ -38,5 +40,5 @@ pub fn all_values() -> Vec<SudokuValue> {
         SudokuValue::Seven,
         SudokuValue::Eight,
         SudokuValue::Nine,
-    ]
+    ])
 }

@@ -9,9 +9,12 @@ mod sudoku_value;
 use std::collections::HashSet;
 
 use iced::{
-    Border, Color,
+    Border, Color, Element, Font,
+    Length::Fill,
+    alignment::{Horizontal, Vertical},
+    font,
     keyboard::key::Named,
-    widget::{Button, Column, Container, button, column, container, row, text},
+    widget::{Button, Column, Container, Text, button, column, container, row, text},
 };
 
 use crate::{
@@ -25,8 +28,9 @@ pub enum Message {
     Select(CellPosition),
     Fill(SudokuValue),
     Clear,
-    Reset,
+    NewGame,
     Navigate(Direction),
+    ToggleAnnotation,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -41,6 +45,7 @@ struct Game {
     sudoku: SudokuGame,
     selected_cell: Option<CellPosition>,
     errors: HashSet<CellPosition>,
+    is_annotation_enabled: bool,
 }
 
 fn main() -> iced::Result {
@@ -58,10 +63,11 @@ impl Game {
             sudoku: game,
             selected_cell: None,
             errors,
+            is_annotation_enabled: false,
         }
     }
 
-    pub fn reset(&mut self) {
+    pub fn new_game(&mut self) {
         self.sudoku = SudokuGame::new();
     }
 
@@ -79,7 +85,7 @@ impl Game {
             })
             .fold(Column::new(), |column, row| column.push(row));
 
-        column![grid, button("Reset").on_press(Message::Reset)]
+        column![grid, button("New Game").on_press(Message::NewGame)]
     }
 
     pub fn subscription(&self) -> iced::Subscription<Message> {
@@ -99,6 +105,7 @@ impl Game {
                     Some(Message::Navigate(Direction::Right))
                 }
                 iced::keyboard::Key::Character(c) => match c.as_str() {
+                    "a" => Some(Message::ToggleAnnotation),
                     "1" => Some(Message::Fill(SudokuValue::One)),
                     "2" => Some(Message::Fill(SudokuValue::Two)),
                     "3" => Some(Message::Fill(SudokuValue::Three)),
@@ -134,14 +141,19 @@ impl Game {
                 }
                 None => {}
             },
-            Message::Reset => self.reset(),
+            Message::NewGame => self.new_game(),
             Message::Fill(v) => match self.selected_cell {
                 Some(selected) => {
                     if self.sudoku.is_clue(selected) == false {
-                        match self.sudoku.set(selected, v) {
-                            Ok(_) => {}
-                            Err(_) => {
-                                self.errors.insert(selected);
+                        if self.is_annotation_enabled {
+                            self.sudoku.annotate(selected, v)
+                        } else {
+                            self.sudoku.remove_annotations(selected);
+                            match self.sudoku.set(selected, v) {
+                                Ok(_) => {}
+                                Err(_) => {
+                                    self.errors.insert(selected);
+                                }
                             }
                         }
                     };
@@ -169,6 +181,7 @@ impl Game {
                 },
                 None => self.selected_cell = Some(CellPosition { block: 0, cell: 0 }),
             },
+            Message::ToggleAnnotation => self.is_annotation_enabled = !self.is_annotation_enabled,
         }
     }
 
@@ -216,7 +229,27 @@ impl Game {
             None => false,
         };
 
-        button(text(value).center().size(20))
+        let button_content: Element<'a, Message> = match cell.value {
+            Some(_) => text(value)
+                .font(Font {
+                    family: font::Family::SansSerif,
+                    style: if self.is_annotation_enabled {
+                        font::Style::Italic
+                    } else {
+                        font::Style::Normal
+                    },
+                    ..Font::DEFAULT
+                })
+                .center()
+                .size(20)
+                .into(),
+            None => {
+                let ann = self.annotations(cell);
+                ann.into()
+            }
+        };
+
+        button(button_content)
             .width(50)
             .height(50)
             .on_press(Message::Select(cell.position))
@@ -240,4 +273,45 @@ impl Game {
                 shadow: Default::default(),
             })
     }
+
+    fn annotations<'a>(&self, cell: &SudokuCell) -> Column<'a, Message> {
+        column![
+            row![
+                annotation_or_default(&cell.annotations, SudokuValue::One),
+                annotation_or_default(&cell.annotations, SudokuValue::Two),
+                annotation_or_default(&cell.annotations, SudokuValue::Three)
+            ]
+            .width(Fill)
+            .height(Fill),
+            row![
+                annotation_or_default(&cell.annotations, SudokuValue::Four),
+                annotation_or_default(&cell.annotations, SudokuValue::Five),
+                annotation_or_default(&cell.annotations, SudokuValue::Six)
+            ]
+            .width(Fill)
+            .height(Fill),
+            row![
+                annotation_or_default(&cell.annotations, SudokuValue::Seven),
+                annotation_or_default(&cell.annotations, SudokuValue::Eight),
+                annotation_or_default(&cell.annotations, SudokuValue::Nine)
+            ]
+            .width(Fill)
+            .height(Fill),
+        ]
+        .width(Fill)
+        .height(Fill)
+    }
+}
+
+fn annotation_or_default<'a>(annotations: &HashSet<SudokuValue>, value: SudokuValue) -> Text<'a> {
+    let value = match annotations.get(&value) {
+        Some(v) => v.number().to_string(),
+        None => "".to_string(),
+    };
+
+    return text(value)
+        .size(14)
+        .width(Fill)
+        .align_x(Horizontal::Center)
+        .align_y(Vertical::Center);
 }

@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use crate::sudoku_value::{SudokuValue, all_values};
 
 pub type SudokuBlock = Vec<SudokuCell>;
@@ -12,14 +14,14 @@ pub struct CellPosition {
 pub struct SudokuCell {
     pub position: CellPosition,
     pub value: Option<SudokuValue>,
-    pub annotations: Vec<SudokuValue>,
+    pub annotations: HashSet<SudokuValue>,
 }
 
 impl SudokuCell {
     pub fn empty(block: usize, cell: usize) -> Self {
         SudokuCell {
             position: CellPosition { block, cell },
-            annotations: vec![],
+            annotations: HashSet::new(),
             value: None,
         }
     }
@@ -90,23 +92,27 @@ impl SudokuBoard {
 
     pub fn remove_annotation(&mut self, cell_position: CellPosition, value: SudokuValue) {
         let sudoku_cell = &mut self.blocks[cell_position.block][cell_position.cell];
-        let current_annotation = sudoku_cell
-            .annotations
-            .iter()
-            .position(|v| *v == value)
-            .expect(
-                format!(
-                    "Cannot remove a value that is not present {:?}",
-                    cell_position
-                )
-                .as_str(),
-            );
+        sudoku_cell.annotations.remove(&value);
+    }
 
-        sudoku_cell.annotations.remove(current_annotation);
+    pub fn add_annotation(&mut self, cell_position: CellPosition, value: SudokuValue) {
+        let sudoku_cell = &mut self.blocks[cell_position.block][cell_position.cell];
+        sudoku_cell.annotations.insert(value);
+    }
+
+    pub fn has_annotation(&mut self, cell_position: CellPosition, value: SudokuValue) -> bool {
+        self.blocks[cell_position.block][cell_position.cell]
+            .annotations
+            .contains(&value)
     }
 
     pub fn full_annotation(&mut self, cell_position: CellPosition) {
         self.blocks[cell_position.block][cell_position.cell].annotations = all_values();
+    }
+
+    pub fn clear_annotations(&mut self, cell_position: CellPosition) {
+        let sudoku_cell = &mut self.blocks[cell_position.block][cell_position.cell];
+        sudoku_cell.annotations = HashSet::new();
     }
 
     pub fn exists_in_row(&self, value: &SudokuValue, cell_position: CellPosition) -> bool {

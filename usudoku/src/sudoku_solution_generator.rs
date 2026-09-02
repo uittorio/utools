@@ -70,22 +70,22 @@ impl SudokuSolutionBacktrackingGenerator {
         match cell.value {
             Some(v) => Some(v),
             None => {
-                let remaining_to_try = &cell.annotations;
+                let remaining_to_try = &cell.annotations.iter().collect::<Vec<&SudokuValue>>();
                 if remaining_to_try.len() == 0 {
                     return None;
                 }
 
-                let value_to_try = cell.annotations[random_range(0..remaining_to_try.len())];
+                let value_to_try = remaining_to_try[random_range(0..remaining_to_try.len())];
                 let exist_in_row = self.board.exists_in_row(&value_to_try, cell_position);
                 let exist_in_column = self.board.exists_in_column(&value_to_try, cell_position);
                 let exist_in_block = self.board.exists_in_block(&value_to_try, cell_position);
 
                 if exist_in_row || exist_in_column || exist_in_block {
-                    self.board.remove_annotation(cell_position, value_to_try);
+                    self.board.remove_annotation(cell_position, *value_to_try);
                     return self.try_add_value(cell_position);
                 }
 
-                return Some(value_to_try);
+                return Some(*value_to_try);
             }
         }
     }
