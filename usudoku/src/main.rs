@@ -85,7 +85,12 @@ impl Game {
             })
             .fold(Column::new(), |column, row| column.push(row));
 
-        column![grid, button("New Game").on_press(Message::NewGame)]
+        let text = if self.sudoku.completed() {
+            "You won, Start New Game"
+        } else {
+            "New Game"
+        };
+        column![grid, button(text).on_press(Message::NewGame)]
     }
 
     pub fn subscription(&self) -> iced::Subscription<Message> {
@@ -128,38 +133,51 @@ impl Game {
             Message::Select(position) => {
                 self.selected_cell = Some(position);
             }
-            Message::Clear => match self.selected_cell {
-                Some(selected) => {
-                    if self.sudoku.is_clue(selected) == false {
-                        match self.sudoku.empty(selected) {
-                            Ok(_) => {}
-                            Err(_) => {
-                                self.errors.insert(selected);
-                            }
-                        }
-                    };
+            Message::Clear => {
+                if self.sudoku.completed() {
+                    return;
                 }
-                None => {}
-            },
-            Message::NewGame => self.new_game(),
-            Message::Fill(v) => match self.selected_cell {
-                Some(selected) => {
-                    if self.sudoku.is_clue(selected) == false {
-                        if self.is_annotation_enabled {
-                            self.sudoku.annotate(selected, v)
-                        } else {
+
+                match self.selected_cell {
+                    Some(selected) => {
+                        if self.sudoku.is_clue(selected) == false {
                             self.sudoku.remove_annotations(selected);
-                            match self.sudoku.set(selected, v) {
+                            match self.sudoku.empty(selected) {
                                 Ok(_) => {}
                                 Err(_) => {
                                     self.errors.insert(selected);
                                 }
                             }
-                        }
-                    };
+                        };
+                    }
+                    None => {}
                 }
-                None => {}
-            },
+            }
+            Message::NewGame => self.new_game(),
+            Message::Fill(v) => {
+                if self.sudoku.completed() {
+                    return;
+                }
+
+                match self.selected_cell {
+                    Some(selected) => {
+                        if self.sudoku.is_clue(selected) == false {
+                            if self.is_annotation_enabled {
+                                self.sudoku.annotate(selected, v)
+                            } else {
+                                self.sudoku.remove_annotations(selected);
+                                match self.sudoku.set(selected, v) {
+                                    Ok(_) => {}
+                                    Err(_) => {
+                                        self.errors.insert(selected);
+                                    }
+                                }
+                            }
+                        };
+                    }
+                    None => {}
+                }
+            }
             Message::Navigate(direction) => match self.selected_cell {
                 Some(_) => match direction {
                     Direction::Up => {
@@ -181,7 +199,12 @@ impl Game {
                 },
                 None => self.selected_cell = Some(CellPosition { block: 0, cell: 0 }),
             },
-            Message::ToggleAnnotation => self.is_annotation_enabled = !self.is_annotation_enabled,
+            Message::ToggleAnnotation => {
+                if self.sudoku.completed() {
+                    return;
+                }
+                self.is_annotation_enabled = !self.is_annotation_enabled
+            }
         }
     }
 

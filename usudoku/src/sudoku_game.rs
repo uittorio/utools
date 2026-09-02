@@ -24,7 +24,7 @@ impl SudokuGame {
     pub fn new() -> Self {
         let size = SudokuSize::NineByNine;
         let solution = SudokuSolutionBacktrackingGenerator::new(size);
-        let clues = min_17(&solution, SudokuDifficulty::Easy, size);
+        let clues = min_17(&solution, SudokuDifficulty::OneShot, size);
 
         let board = SudokuBoard::from(&clues);
 
@@ -48,6 +48,25 @@ impl SudokuGame {
 
     pub fn blocks(&self) -> &Vec<SudokuBlock> {
         &self.board.blocks
+    }
+
+    pub fn completed(&self) -> bool {
+        for block in self.blocks() {
+            for cell in block {
+                let matching = match cell.value {
+                    Some(v) => {
+                        self.solution.blocks[cell.position.block][cell.position.cell].value == v
+                    }
+                    None => false,
+                };
+
+                if matching == false {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 
     pub fn set(&mut self, position: CellPosition, value: SudokuValue) -> Result<(), SudokuError> {

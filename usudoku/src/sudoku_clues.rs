@@ -7,11 +7,11 @@ use crate::{
     sudoku_solution::SudokuSolution,
 };
 
+#[allow(dead_code)]
 pub enum SudokuDifficulty {
+    OneShot,
     Easy,
-    #[allow(dead_code)]
     Medium,
-    #[allow(dead_code)]
     Hard,
 }
 
@@ -31,6 +31,7 @@ pub fn min_17(
     // We could find a way to check if there is more than one solution
     //
     let clues_range = match difficulty {
+        SudokuDifficulty::OneShot => 80..81,
         SudokuDifficulty::Easy => 35..45,
         SudokuDifficulty::Medium => 28..35,
         SudokuDifficulty::Hard => 17..28,
