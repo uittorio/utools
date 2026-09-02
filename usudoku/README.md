@@ -10,9 +10,13 @@ Implement a ~playbable sudoku
 
 V Do not let changing existing pre filled cells
 V Show error
+Annotations
+Win state 
+ - block board
+ - show something
 
 Phase 2
-Ensure the sudoku has one solution by improving how the clues are generated. In Phase 1 is just percentage based. (remove 20% of the cells)
+Ensure the sudoku has one solution by improving how the clues are generated;
 
 Phase 3
 Learn and use the dancing algorithm to prefill the sudoku

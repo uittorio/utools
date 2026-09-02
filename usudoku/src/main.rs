@@ -229,11 +229,10 @@ impl Game {
                 },
                 snap: true,
                 border: Border {
-                    color: match (is_error, is_selected) {
-                        (true, true) => Color::from_rgb(0.8, 0.0, 0.0),
-                        (true, false) => Color::from_rgb(0.6, 0.0, 0.0),
-                        (false, true) => Color::from_rgb(0.8, 0.8, 0.8),
-                        (false, false) => Color::from_rgb(0.6, 0.6, 0.6),
+                    color: if is_selected {
+                        Color::from_rgb(0.8, 0.8, 0.8)
+                    } else {
+                        Color::from_rgb(0.6, 0.6, 0.6)
                     },
                     width: if is_selected { 4.0 } else { 1.0 },
                     radius: 8.0.into(),
