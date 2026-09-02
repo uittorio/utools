@@ -310,6 +310,7 @@ fn annotation_or_default<'a>(annotations: &HashSet<SudokuValue>, value: SudokuVa
     };
 
     return text(value)
+        .color(Color::from_rgb(0.6, 0.6, 0.6))
         .size(14)
         .width(Fill)
         .align_x(Horizontal::Center)
